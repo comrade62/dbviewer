@@ -17,7 +17,7 @@
 
 --------------------------------------------------------------
 
-![alt text](src/main/resources/readme/dbViewerOne.png)
+![alt text](src/main/resources/readme/dbViewerConnectionPanel.png)
 
 
-![alt text](src/main/resources/readme/dbViewerTwo.png)
+![alt text](src/main/resources/readme/dbViewerDatabaseView.png)
