@@ -17,7 +17,7 @@
 
 --------------------------------------------------------------
 
-![alt text](src/main/resources/readme/dbViewerConnectionView.png)
+![Dbviewer Connection View Panel](src/main/resources/readme/dbViewerConnectionView.png)
 
 
-![alt text](src/main/resources/readme/dbViewerDatabaseView.png)
+![Dbviewer Open SQLLite Connection](src/main/resources/readme/dbViewerDatabaseView.png)
