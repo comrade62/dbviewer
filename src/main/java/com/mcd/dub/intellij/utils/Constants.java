@@ -1,6 +1,6 @@
 package com.mcd.dub.intellij.utils;
 
-import org.apache.derby.client.ClientAutoloadedDriver;
+import org.apache.derby.jdbc.ClientDriver;
 import org.sqlite.JDBC;
 
 import java.sql.Driver;
@@ -47,7 +47,7 @@ public class Constants {
         ORACLE      (SQL, "jdbc:oracle:thin:@", null, -1, false),//TODO
         ACCESS      (SQL, "jdbc:ucanaccess://", null, -1, false),//TODO
         EXCEL       (SQL, "jdbc:excel://", null, -1, false), //TODO - write jdbc driver
-        DERBY       (SQL, "jdbc:derby://" ,     ClientAutoloadedDriver.class, 1527, true),// TODO - Fix
+        DERBY       (SQL, "jdbc:derby://" ,     ClientDriver.class, 1527, true),// TODO - Fix
         MARIA_DB    (SQL, "jdbc:mariadb://",    org.mariadb.jdbc.Driver.class, 3306, true),
         POSTGRESQL  (SQL, "jdbc:postgresql://", org.postgresql.Driver.class, 5432, true), //TODO - Fix masses of exceptions!
         MY_SQL      (SQL, "jdbc:mysql://" ,     com.mysql.jdbc.Driver.class, 3306, true),
