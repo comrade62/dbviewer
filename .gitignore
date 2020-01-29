@@ -1,0 +1,10 @@
+
+# Project exclude paths
+out/**
+build/**
+.gradle/**
+.idea/libraries/**
+.idea/workspace.xml
+.idea/statistic.xml
+gradle.properties
+tmp/**

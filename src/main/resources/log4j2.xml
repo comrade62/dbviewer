@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--suppress XmlUnboundNsPrefix -->
+<Configuration status="warn">
+
+    <Properties>
+        <Property name="dbviewer.idea.logDirectory">/tmp</Property>
+    </Properties>
+
+    <Appenders>
+        <RollingFile name="FileLogger" fileName="${dbviewer.idea.logDirectory}/dbviewer.log" filePattern="${dbviewer.idea.logDirectory}/dbviewer.log%d{.yyyy-MM-dd}">
+            <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n" charset="UTF-8"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+            </Policies>
+        </RollingFile>
+
+        <Console name="Console" follow="true">
+            <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %c{1} - %msg%n" charset="UTF-8"/>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Root level="INFO">
+            <appender-ref ref="Console"/>
+            <appender-ref ref="FileLogger"/>
+        </Root>
+
+        <Logger name="Console" additivity="true" level="INFO"/>
+
+        <Logger name="FileLogger" additivity="true" level="DEBUG">
+            <AppenderRef ref="FileLogger"/>
+        </Logger>
+    </Loggers>
+
+</Configuration>

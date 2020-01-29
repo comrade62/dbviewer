@@ -1,0 +1,43 @@
+<idea-plugin>
+    <id>mcd.dbviewer</id>
+    <name>Database Viewer</name>
+    <vendor email="openapullrequest@belowrepo.com" url="http://www.m&amp;m_enterprises.com">M&amp;M Enterprises</vendor>
+
+    <description>
+        <![CDATA[ Lightweight plugin for viewing database tables over JDBC<!-- or JNDI (TODO)-->.<br><br>
+
+        Supported Databases;<br>
+            - MS SQL Server<br>
+            - MySQL/MariaDB<br>
+            - Postgresql<br>
+            - Derby<br>
+            - H2<br>
+            - SQLite<br><br>
+
+            Code Repository: ...@github.com<br><br>
+
+        <!--Validated Platforms;<br>
+            - Fedora 30.<br>
+            - Windows 10 (TODO).-->
+        ]]>
+    </description>
+
+    <version>1.0</version>
+    <idea-version since-build="192" />
+    <depends>com.intellij.modules.lang</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="Database Viewer" anchor="bottom"  icon="/icons/DatabaseViewer.png" factoryClass="com.mcd.dub.ToolWindowViewManager"/>
+        <projectService id="db_pool_service" serviceInterface="com.mcd.dub.intellij.service.DataSourceService"
+                        serviceImplementation="com.mcd.dub.intellij.service.DataSourceServiceImpl"/>
+    </extensions>
+
+    <actions> </actions>
+
+    <project-components>
+        <component>
+            <implementation-class>com.mcd.dub.intellij.components.DbViewerProjectComponent</implementation-class>
+        </component>
+    </project-components>
+
+</idea-plugin>
