@@ -1,11 +1,9 @@
 package com.mcd.dub.intellij.utils;
 
-import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.extensions.PluginDescriptor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -22,8 +20,6 @@ public enum DbViewerPluginUtils {
     INSTANCE;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final PluginDescriptor plugin = PluginManagerCore.getLoadedPlugins().stream().filter(o -> o.getPluginId().getIdString().equals(System.getProperty("idea.pluginAccelerator.id"))).findFirst().orElseGet(null);
-    private final String pluginName = plugin == null ? "NULL!" : plugin.getName();
     private final Map<NotificationType, String> notificationTypeToLoggerCategory = new HashMap<>(3);
     {
         notificationTypeToLoggerCategory.put(ERROR, ERROR.name().toLowerCase());
@@ -33,7 +29,7 @@ public enum DbViewerPluginUtils {
 
     public void writeToEventLog(@NotNull NotificationType notificationType, @NotNull String msg, @Nullable Exception exception, boolean hideBalloon, boolean writeToLogFile) {
         ApplicationManager.getApplication().invokeLater(() -> {
-            Notification notification = new Notification(pluginName, pluginName, msg, notificationType);
+            Notification notification = new Notification("dbviewer", "Database Viewer", msg, notificationType);
             Notifications.Bus.notify(notification);
             if (hideBalloon)
                 notification.expire();
@@ -83,15 +79,6 @@ public enum DbViewerPluginUtils {
             return Collections.unmodifiableMap(dataMap);
         }
         return dataMap;
-    }
-
-    @Nullable
-    public PluginDescriptor getPlugin() {
-        return plugin;
-    }
-
-    public String getPluginName() {
-        return pluginName;
     }
 
 }

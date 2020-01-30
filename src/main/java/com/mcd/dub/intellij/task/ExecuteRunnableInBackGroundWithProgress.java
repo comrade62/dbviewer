@@ -11,6 +11,12 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.LockSupport;
+
 import static com.intellij.notification.NotificationType.*;
 
 public class ExecuteRunnableInBackGroundWithProgress extends Backgroundable {
@@ -54,8 +60,30 @@ public class ExecuteRunnableInBackGroundWithProgress extends Backgroundable {
     @Override
     public void onCancel() {
         if (canBeCancelled && thread != null && thread.isAlive()) {
-            ApplicationManager.getApplication().executeOnPooledThread(thread::interrupt);
-            DbViewerPluginUtils.INSTANCE.writeToEventLog(WARNING, "Task - " + this.getTitle() + " was Interrupted", null, false, true);
+            Future<String> future = ApplicationManager.getApplication().executeOnPooledThread(() -> {
+                final int[] fib = new int[] { 1, 2, 3, 5, 8, 13 };
+                int attempt = 0;
+                while(thread.isAlive()) {
+                    thread.interrupt();
+                    LockSupport.parkNanos(fib[attempt] * 1000);
+                    attempt++;
+                    if(attempt > fib.length -1) {
+                        break;
+                    }
+                }
+                return "Thread isAlive() -> " + thread.isAlive();
+            });
+            String s = "N/A";
+            try {
+                s = future.get(33, TimeUnit.SECONDS);
+            } catch (TimeoutException e) {
+                future.cancel(true);
+            } catch (InterruptedException | ExecutionException e) {
+                logger.error("::onCancel -> ", e);
+                future.cancel(true);
+            }
+            //ApplicationManager.getApplication().executeOnPooledThread(thread::interrupt);
+            DbViewerPluginUtils.INSTANCE.writeToEventLog(WARNING, "Task - " + this.getTitle() + " was Interrupted, Status: " + s, null, false, true);
         }
     }
 

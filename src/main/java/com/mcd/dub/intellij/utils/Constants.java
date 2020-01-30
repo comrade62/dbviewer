@@ -49,14 +49,11 @@ public class Constants {
         EXCEL       (SQL, "jdbc:excel://", null, -1, false), //TODO - write jdbc driver
         DERBY       (SQL, "jdbc:derby://" ,     ClientDriver.class, 1527, true),// TODO - Fix
         MARIA_DB    (SQL, "jdbc:mariadb://",    org.mariadb.jdbc.Driver.class, 3306, true),
-        POSTGRESQL  (SQL, "jdbc:postgresql://", org.postgresql.Driver.class, 5432, true), //TODO - Fix masses of exceptions!
+        POSTGRESQL  (SQL, "jdbc:postgresql://", org.postgresql.Driver.class, 5432, true),
         MY_SQL      (SQL, "jdbc:mysql://" ,     com.mysql.jdbc.Driver.class, 3306, true),
         H2          (SQL, "jdbc:h2:-tcp://" ,   org.h2.Driver.class, 8082, true), //TODO - Test
         SQLITE      (SQL, "jdbc:sqlite:" ,      JDBC.class, -1, true),
         HSQLDB      (SQL, "jdbc:hsqldb:hsql://", null, 9001, false); // TODO
-
-
-        private String MS_DRIVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver.class";
 
         private final int defaultPort;
         private final String jdbcPrefix;

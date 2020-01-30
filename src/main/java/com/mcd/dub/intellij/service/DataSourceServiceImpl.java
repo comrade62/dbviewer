@@ -1,9 +1,8 @@
 package com.mcd.dub.intellij.service;
 
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.mcd.dub.database.DataSource;
-import com.mcd.dub.intellij.persistence.StoredConnections;
+import com.mcd.dub.intellij.utils.DbViewerPluginUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,6 +16,8 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import static com.intellij.notification.NotificationType.ERROR;
 
 class DataSourceServiceImpl extends DataSource implements DataSourceService {
 
@@ -33,10 +34,16 @@ class DataSourceServiceImpl extends DataSource implements DataSourceService {
     }
 
     @Override
-    public String buildConnectionPool(@NotNull List<Object> connectionSettings, char[] dbPassword) {
-        String poolUrl = super.buildConnectionPool(connectionSettings, dbPassword);
-        listeners.forEach(getConnectionPools().get(poolUrl)::registerListenerWithPool);
-        updateListeners(null);
+    public String buildConnectionPool(@NotNull List<Object> connectionSettings, char[] dbPassword) throws SQLException, IllegalStateException {
+        String poolUrl;
+        try {
+            poolUrl = super.buildConnectionPool(connectionSettings, dbPassword);
+            listeners.forEach(getConnectionPools().get(poolUrl)::registerListenerWithPool);
+            updateListeners(null);
+        } catch (SQLException e) {
+            DbViewerPluginUtils.INSTANCE.writeToEventLog(ERROR, "::buildConnectionPool-> " + e.getMessage(), e, false, true);
+            throw e;
+        }
         return poolUrl;
     }
 
@@ -63,7 +70,7 @@ class DataSourceServiceImpl extends DataSource implements DataSourceService {
         executorService.shutdown();
         int unKilledTasks = executorService.shutdownNow().size();
         if(unKilledTasks > 0) {
-            logger.error("::shutDownEverything -> Un-Killed Tasks: "+ unKilledTasks);
+            logger.error("::shutDownEverything -> # of Un-Killed Tasks: "+ unKilledTasks);
         }
     }
 

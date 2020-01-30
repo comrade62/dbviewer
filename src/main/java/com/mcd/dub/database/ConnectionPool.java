@@ -3,10 +3,7 @@ package com.mcd.dub.database;
 import com.intellij.openapi.application.ApplicationManager;
 import com.mcd.dub.intellij.utils.Constants.SqlDatabaseTypes;
 import com.mcd.dub.intellij.utils.DbViewerPluginUtils;
-import org.apache.commons.dbcp.ConnectionFactory;
-import org.apache.commons.dbcp.PoolableConnectionFactory;
-import org.apache.commons.dbcp.PoolingDataSource;
-import org.apache.commons.pool.impl.GenericObjectPool;
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,37 +18,32 @@ import java.util.Arrays;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.notification.NotificationType.INFORMATION;
 
-//TODO; Bi-Directional events between this & the view's tree and table models
 public class ConnectionPool implements PropertyChangeListener {
 
     private static Logger logger = LoggerFactory.getLogger(ConnectionPool.class);
 
+    private final BasicDataSource dataSource;
     private final SqlDatabaseTypes sqlDatabaseType;
-    private final GenericObjectPool genericObjectPool;
-    private final PoolingDataSource poolingDataSource;
-    private final PoolableConnectionFactory poolableConnectionFactory;
     private final SwingPropertyChangeSupport swingPropertyChange = new SwingPropertyChangeSupport(this, true);
 
-    public ConnectionPool(@NotNull SqlDatabaseTypes sqlDatabaseType,
-                          @NotNull ConnectionFactory connectionFactory,
-                          @NotNull GenericObjectPool genericObjectPool,
-                          boolean readOnly) {
+    private boolean atLeastOneClientWasConnected = false;
+
+    ConnectionPool(@NotNull SqlDatabaseTypes sqlDatabaseType, @NotNull BasicDataSource dataSource) {
         this.sqlDatabaseType = sqlDatabaseType;
-        this.genericObjectPool = genericObjectPool;
-        poolableConnectionFactory = new PoolableConnectionFactory(connectionFactory, genericObjectPool, null, "SELECT 1", readOnly, true);
-        poolingDataSource = new PoolingDataSource(this.genericObjectPool);
+        this.dataSource = dataSource;
+        dataSource.setValidationQuery("SELECT 1");
     }
 
     String poolStatus() {
-        return (genericObjectPool.getNumActive() == 0) ? "Not Started" : "Started";
+        return (dataSource.getNumActive() == 0) ? (atLeastOneClientWasConnected) ? "Stopped" : "Not Started" : "Started";
     }
 
     int activeConnections() {
-        return genericObjectPool.getNumActive();
+        return dataSource.getNumActive();
     }
 
     int inActiveConnections() {
-        return genericObjectPool.getNumIdle();
+        return dataSource.getNumIdle();
     }
 
     public void registerListenerWithPool(PropertyChangeListener propertyChangeListener) {
@@ -64,18 +56,16 @@ public class ConnectionPool implements PropertyChangeListener {
 
     public Connection getConnectionFromPool() throws SQLException {
         DbViewerPluginUtils.INSTANCE.writeToEventLog(INFORMATION, poolStatus(), null, true, true);
-        Connection connection = poolingDataSource.getConnection();
-        try {
-            poolableConnectionFactory.validateConnection(connection);
-        } catch (SQLException sqlEx) {
-            logger.error("::getConnectionFromPool -> ", sqlEx);
-            throw sqlEx;
+        Connection connection = dataSource.getConnection();
+        if(dataSource.getFastFailValidation()) {
+            throw new SQLException("::getConnectionFromPool -> ");
         }
         updateListeners();
+        atLeastOneClientWasConnected = true;
         return connection;
     }
 
-    void closeConnection(Connection connection) {
+    private void closeConnection(Connection connection) {
         try {
             connection.close();
             updateListeners();
@@ -85,14 +75,9 @@ public class ConnectionPool implements PropertyChangeListener {
         }
     }
 
-    void shutdownPool() {
-        try {
-            genericObjectPool.clear();
-            genericObjectPool.close();
-            updateListeners();
-        } catch (Exception e) {
-            DbViewerPluginUtils.INSTANCE.writeToEventLog(ERROR, "::shutdownPool-> " + e.getMessage(), e, false, true);
-        }
+    void shutdownPool() throws SQLException {
+        dataSource.close();
+        updateListeners();
     }
 
     public void updateListeners() {
@@ -108,6 +93,14 @@ public class ConnectionPool implements PropertyChangeListener {
 
     public SqlDatabaseTypes getSqlDatabaseType() {
         return sqlDatabaseType;
+    }
+
+    @Override
+    public String toString() {
+        return "ConnectionPool: " + dataSource.getUrl() +
+                "Status " + poolStatus() +
+                "\n{dataSource= " + dataSource +
+                ", Listeners= " + swingPropertyChange.getPropertyChangeListeners().length + '}';
     }
 
 }

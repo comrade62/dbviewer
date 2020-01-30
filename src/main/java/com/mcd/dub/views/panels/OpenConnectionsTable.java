@@ -14,7 +14,6 @@ import java.util.List;
 
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 
-//TODO - Move Pool info to this table as each pool is tied to a database.
 public class OpenConnectionsTable extends JBTable {
 
     private final JBMenuItem closeConnection = new JBMenuItem("Close Connection");

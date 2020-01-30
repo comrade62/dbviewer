@@ -93,6 +93,8 @@ public final class ConnectionSettingsPanel extends JBPanel<ConnectionSettingsPan
         databaseName = new JBTextField();
         userPassword = new JPasswordField();
         hostLabel = new JBLabel(System.getProperty("panel.connectionsettings.host"));
+        hostPort = new JBTextField();
+        resultingUrl = new JBTextField();
 
         vendor = new ComboBox<>(new DefaultComboBoxModel<>());
         for (SqlDatabaseTypes dbType : SqlDatabaseTypes.values()) {
@@ -100,11 +102,8 @@ public final class ConnectionSettingsPanel extends JBPanel<ConnectionSettingsPan
                 ((DefaultComboBoxModel<SqlDatabaseTypes>)vendor.getModel()).addElement(dbType);
             }
         }
-        int defaultPort = ((SqlDatabaseTypes) Objects.requireNonNull(vendor.getSelectedItem())).getDefaultPort();
-        if(defaultPort != -1) {
-            hostPort = new JBTextField(String.valueOf(defaultPort));
-        }
-        resultingUrl = new JBTextField();
+
+        setDefaultPort();
         setResultingUrl();
 
         connectionType = new ComboBox<>(new DefaultComboBoxModel<>());
@@ -131,8 +130,11 @@ public final class ConnectionSettingsPanel extends JBPanel<ConnectionSettingsPan
         ApplicationManager.getApplication().invokeLater(() -> {
             int defaultPort = ((SqlDatabaseTypes) Objects.requireNonNull(vendor.getSelectedItem())).getDefaultPort();
             if(defaultPort != -1) {
+                hostLabel.setText(System.getProperty("panel.connectionsettings.host"));
                 hostPort.setText(String.valueOf(defaultPort));
+                hostName.setText("127.0.0.1");
             } else {
+                hostLabel.setText(System.getProperty("panel.connectionsettings.path"));
                 hostPort.setText("");
             }
         });
@@ -152,27 +154,19 @@ public final class ConnectionSettingsPanel extends JBPanel<ConnectionSettingsPan
                 userName.setText("");
                 vendor.setSelectedIndex(0);
                 databaseName.setBackground(JBColor.WHITE);
-                int defaultPort = ((SqlDatabaseTypes) Objects.requireNonNull(vendor.getSelectedItem())).getDefaultPort();
-                if(defaultPort != -1) {
-                    hostPort.setText(String.valueOf(defaultPort));
-                }
-                hostName.setText("127.0.0.1");
                 setDefaultPort();
                 setResultingUrl();
                 ConnectionSettingsPanel.this.firePropertyChange(ConnectionSettingsPanel.class.getSimpleName(), clearConnectionDetailsButton.getText(), null);
             });
             vendor.addItemListener(itemEvent -> {
+                userName.setText("");
+                userPassword.setText("");
                 setDefaultPort();
                 if(itemEvent.getStateChange() == ItemEvent.SELECTED && itemEvent.getItem().equals(SQLITE)) {
-                    hostPort.setText("");
-                    userName.setText("");
-                    userPassword.setText("");
                     hostPort.setEnabled(false);
                     connectionType.setEnabled(false);
                     userName.setEnabled(false);
                     userPassword.setEnabled(false);
-                    connectionType.setEnabled(false);
-                    hostLabel.setText(System.getProperty("panel.connectionsettings.path"));
                 } else if(itemEvent.getStateChange() == ItemEvent.SELECTED) {
                     hostPort.setEnabled(true);
                     connectionType.setEnabled(true);
@@ -180,7 +174,6 @@ public final class ConnectionSettingsPanel extends JBPanel<ConnectionSettingsPan
                     userPassword.setEnabled(true);
                     connectionType.setEnabled(true);
                     userPassword.setText("");
-                    hostLabel.setText(System.getProperty("panel.connectionsettings.host"));
                 }
                 setResultingUrl();
             });

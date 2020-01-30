@@ -16,9 +16,9 @@ public interface DataSourceService extends Disposable {
         return ServiceManager.getService(project, DataSourceService.class);
     }
 
-    String buildConnectionPool(@NotNull List<Object> connectionSettings, char[] dbPassword);
+    String buildConnectionPool(@NotNull List<Object> connectionSettings, char[] dbPassword) throws SQLException, IllegalStateException;
 
-    Connection getConnectionFromPool(@NotNull String poolId) throws SQLException;
+    Connection getConnectionFromPool(@NotNull String poolId) throws SQLException, IllegalStateException;
 
     void addPoolsListener(PropertyChangeListener propertyChangeListener);
 

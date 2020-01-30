@@ -1,6 +1,9 @@
 package com.mcd.dub.intellij.persistence;
 
-import com.intellij.openapi.components.*;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import com.intellij.util.xmlb.annotations.MapAnnotation;
 import com.mcd.dub.intellij.utils.DbViewerPluginUtils;
@@ -12,13 +15,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-@State(name="StoredConnections", storages = {@Storage("stored-conns.xml")})
+@State(name="StoredConnections", storages = {@Storage("dbviewer-stored-conns.xml")})
 public class StoredConnections implements PersistentStateComponent<StoredConnections> {
 
     @MapAnnotation(sortBeforeSave = false)
-    public final Map<String, List<Object>> dataMap = DbViewerPluginUtils.INSTANCE.getDataMap(false);
+    private final Map<String, List<Object>> dataMap = DbViewerPluginUtils.INSTANCE.getDataMap(false);
 
-    public void setDataMap(LinkedHashMap<String, List<Object>> dataMap) {
+    public void bulkAddData(LinkedHashMap<String, List<Object>> dataMap) {
         this.dataMap.putAll(dataMap);
     }
 

@@ -37,8 +37,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -202,20 +202,20 @@ final class DatabaseViewPanel extends JBPanel<DatabaseViewPanel> {
     }
 
     void refreshTableData(@NotNull DefaultMutableTreeNode selectedElement) {
-        resultSetPageNumber.set(0);
+        resultSetPageNumber.set(1);
         selectedTreeElement = selectedElement;
         if (selectedElement.toString().contains("(")) {
             String tableName = selectedElement.toString().substring(0, selectedElement.toString().indexOf('(')).trim(),
                                 currentTreeNodeLabel = selectedElement.toString();
             final int totalResultsInTable = Integer.parseInt(currentTreeNodeLabel.substring(currentTreeNodeLabel.indexOf("(") + 1, currentTreeNodeLabel.lastIndexOf(")")));
             try {
-                maxPagesCurrentTable.set(((DatabaseViewModel) resultsTable.getModel()).refreshTableModel(tableName, totalResultsInTable));
+                maxPagesCurrentTable.set(((DatabaseViewModel) resultsTable.getModel()).refreshTableModel(tableName, totalResultsInTable) + 1);
             } catch (SQLException e) {
                 logger.error("::refreshTableData -> ", e);
                 return;
             }
             ApplicationManager.getApplication().invokeLater(() -> {
-                nextPageButton.setEnabled(maxPagesCurrentTable.get() > 0);
+                nextPageButton.setEnabled(maxPagesCurrentTable.get() > 1);
                 tableStats1.setText("Showing: (" + maxRowCount + ") Rows per Page, Max Pages: " + maxPagesCurrentTable);
                 //tableStats1.setText("Max Pages: " + maxPagesCurrentTable);
                 ((DatabaseViewModel)resultsTable.getModel()).fireTableStructureChanged();
@@ -265,12 +265,12 @@ final class DatabaseViewPanel extends JBPanel<DatabaseViewPanel> {
         public void actionPerformed(ActionEvent e) {
 
             if (e.getSource().equals(databaseViewPanel.addRowMenuButton)) {
-                //TODO -
-                JOptionPane.showMessageDialog(null, "Execute Add Row");
+                //TODO
+                JOptionPane.showMessageDialog(null, "TODO - Execute Add Row");
             } else if (e.getSource().equals(databaseViewPanel.deleteRowMenuButton)) {
-                //TODO - Execute SQL & Remove from model. -> Remove View is now Readonly!
                 if (databaseViewPanel.selectedTreeElement != null) {
-                    JOptionPane.showMessageDialog(null, "Execute Delete Row");
+                    //TODO
+                    JOptionPane.showMessageDialog(null, "TODO - Execute Delete Row");
                 } else {
                     DbViewerPluginUtils.INSTANCE.writeToEventLog(
                             NotificationType.ERROR, "Selected Tree Element was NULL: ",
@@ -283,10 +283,10 @@ final class DatabaseViewPanel extends JBPanel<DatabaseViewPanel> {
                         databaseViewPanel.alignAndMarkTableColumns();
                         ((DatabaseViewModel) databaseViewPanel.resultsTable.getModel()).fireTableDataChanged();
                         databaseViewPanel.resultsTable.setEnabled(true);
-                        databaseViewPanel.previousPageButton.setEnabled(databaseViewPanel.resultSetPageNumber.get() != 0);
+                        databaseViewPanel.previousPageButton.setEnabled(databaseViewPanel.resultSetPageNumber.get() != 1);
                         databaseViewPanel.nextPageButton.setEnabled(true);
                     });
-                } else if(databaseViewPanel.resultSetPageNumber.get() > 0) {
+                } else if(databaseViewPanel.resultSetPageNumber.get() > 1) {
                     databaseViewPanel.resultSetPageNumber.getAndDecrement();
                     ApplicationManager.getApplication().executeOnPooledThread(() -> {
                         ApplicationManager.getApplication().invokeLater(() -> databaseViewPanel.previousPageButton.setEnabled(false));
@@ -313,6 +313,7 @@ final class DatabaseViewPanel extends JBPanel<DatabaseViewPanel> {
                         databaseViewPanel.nextPageButton.getActionListeners()[0].actionPerformed(new ActionEvent(databaseViewPanel.nextPageButton, ActionEvent.ACTION_PERFORMED, refreshTableCommand));
                     });
                 }
+                //TODO - Fix - Button breaks Pagination.
             } else if(e.getSource().equals(databaseViewPanel.paginationSwitch)) {
                 ApplicationManager.getApplication().executeOnPooledThread(() -> {
                     ApplicationManager.getApplication().invokeLater(() -> {

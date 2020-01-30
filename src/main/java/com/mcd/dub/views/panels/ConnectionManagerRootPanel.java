@@ -93,7 +93,7 @@ public class ConnectionManagerRootPanel extends JBPanel<ConnectionManagerRootPan
         });
 
         buildDbViewPopupMenuItem.addActionListener(actionEvent -> {
-            //TODO
+            //TODO - User View Tables
         });
 
         backButton.addActionListener(e -> ApplicationManager.getApplication().invokeLater(() -> ((CardLayout)cardPanel.getLayout()).show(cardPanel, "SettingsPanel")));
@@ -114,7 +114,7 @@ public class ConnectionManagerRootPanel extends JBPanel<ConnectionManagerRootPan
                 case "Ping":
                     break;
                 case "Connect":
-                    final List<Object> dbConnectionSettings = connectionSettingsPanel.getDatabaseSettings();
+                    List<Object> dbConnectionSettings = connectionSettingsPanel.getDatabaseSettings();
                     createConnection(dbConnectionSettings, connectionSettingsPanel.userPassword.getPassword(), ((StoredConnectionsModel) storedConnectionsTable.getModel()).uniqueRowCheck(dbConnectionSettings));
                     storedConnectionsTable.alignTable();
                     connectionSettingsPanel.createConnectionButton.setEnabled(true);
