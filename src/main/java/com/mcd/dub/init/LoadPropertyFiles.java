@@ -1,5 +1,6 @@
 package com.mcd.dub.init;
 
+import com.intellij.openapi.project.DumbAware;
 import com.mcd.dub.intellij.utils.Constants.SqlDatabaseTypes;
 import com.mcd.dub.intellij.utils.DbViewerPluginUtils;
 import org.slf4j.Logger;
@@ -12,7 +13,7 @@ import java.util.Objects;
 
 import static com.intellij.notification.NotificationType.ERROR;
 
-public enum LoadPropertyFiles {
+public enum LoadPropertyFiles implements DumbAware {
     INSTANCE;
 
     private final Logger logger = LoggerFactory.getLogger(getDeclaringClass());

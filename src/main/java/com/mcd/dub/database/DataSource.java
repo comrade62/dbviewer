@@ -3,7 +3,6 @@ package com.mcd.dub.database;
 import com.mcd.dub.intellij.utils.Constants.SqlDatabaseTypes;
 import org.apache.commons.dbcp.ConnectionFactory;
 import org.apache.commons.dbcp.DriverManagerConnectionFactory;
-import org.apache.commons.dbcp.PoolableConnectionFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -25,7 +24,7 @@ public abstract class DataSource {
     protected static final Logger logger = LoggerFactory.getLogger(DataSource.class);
     protected static Map<String, ConnectionPool> connectionPools = new HashMap<>(SqlDatabaseTypes.values().length);
 
-    protected void buildConnectionPool(@NotNull List<Object> connectionSettings, char[] dbPassword) {
+    protected String buildConnectionPool(@NotNull List<Object> connectionSettings, char[] dbPassword) {
         if(!connectionPools.containsKey(connectionSettings.get(4).toString())) {
             ConnectionFactory cf = new DriverManagerConnectionFactory(connectionSettings.get(4).toString(), connectionSettings.get(5).toString(), String.valueOf(dbPassword));
             boolean readOnly = true;
@@ -38,21 +37,16 @@ public abstract class DataSource {
             genericObjectPool.setMaxActive(DEFAULT_MAX_ACTIVE);
             genericObjectPool.setMaxIdle(DEFAULT_MAX_IDLE);
             genericObjectPool.setMaxWait(DEFAULT_MAX_WAIT);
-            new PoolableConnectionFactory(cf, genericObjectPool, null, "SELECT 1", readOnly, true);
-            ConnectionPool poolingDataSource = new ConnectionPool(SqlDatabaseTypes.valueOf(connectionSettings.get(0).toString()), cf, genericObjectPool);
+            ConnectionPool poolingDataSource = new ConnectionPool(SqlDatabaseTypes.valueOf(connectionSettings.get(0).toString()), cf, genericObjectPool, readOnly);
             connectionPools.put(connectionSettings.get(4).toString(), poolingDataSource);
         }
+        return connectionSettings.get(4).toString();
     }
 
     protected void shutDownAllPools() {
         connectionPools.forEach((sqlDatabaseTypes, connectionPool) -> {
             if(connectionPool != null) {
-                try {
-                    connectionPool.clearPool();
-                    connectionPool.closePool();
-                } catch (Exception ex) {
-                    logger.error("::shutDown -> ", ex);
-                }
+                connectionPool.shutdownPool();
                 logger.info("::shutDown -> Pool Details: " + connectionPool.poolStatus());
             }
         });

@@ -1,5 +1,6 @@
 package com.mcd.dub.intellij.service;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -9,14 +10,16 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-public interface DataSourceService {
+public interface DataSourceService extends Disposable {
 
     static DataSourceService getInstance(@NotNull Project project) {
         return ServiceManager.getService(project, DataSourceService.class);
     }
 
-    Connection getConnectionFromPool(@NotNull List<Object> connectionSettings, char[] dbPassword) throws SQLException;
+    String buildConnectionPool(@NotNull List<Object> connectionSettings, char[] dbPassword);
 
-    void registerServiceListener(PropertyChangeListener propertyChangeListener);
+    Connection getConnectionFromPool(@NotNull String poolId) throws SQLException;
+
+    void addPoolsListener(PropertyChangeListener propertyChangeListener);
 
 }

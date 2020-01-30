@@ -34,36 +34,30 @@ public final class DatabaseViewModel extends AbstractTableModel {
 
     private static final Logger logger = LoggerFactory.getLogger(DatabaseViewModel.class);
 
-    private final int pageSize = Integer.parseInt(System.getProperty("plugin.dbTableViewTab.jTable.pageSize"));
-    private final String uniqueColumn = System.getProperty("plugin.dbTableViewTab.jTable.preferentialUniqueColumn");
     private final boolean writeSqlToEventLog = Boolean.parseBoolean(System.getProperty("plugin.dbTableViewTab.jTable.printSqlToEventLog"));
+    private final String uniqueColumn = System.getProperty("plugin.dbTableViewTab.jTable.preferentialUniqueColumn");
+    private final int pageSize = Integer.parseInt(System.getProperty("plugin.dbTableViewTab.jTable.pageSize"));
     private final List<String> columnHeaders = new ArrayList<>(15), uniqueColumns = new ArrayList<>(5);
-
-    private SimpleEntry<String, Integer> uniqueColumnEntry;
-    private String currentTableName;
-    private Connection connection;
-
-    private final List<List<Object>> rowData = new ArrayList<>(pageSize);
-    private boolean modelIsCurrentlyBeingRefreshed = false;
-    private boolean usePagination = true;
-    private Map<String, String> columnHeadersAndTypes;
-
-    //private DatabaseAccessor databaseAccessor;
-    private SQLModelTransformer databaseAccessor;
-
     private final Map<String, Integer> currentIndexOfTablesMap = new HashMap<>();
-
-    private final Project project;
-
+    private final List<List<Object>> rowData = new ArrayList<>(pageSize);
     private final List<Object> databaseConnectionSettings;
     private final char[] dbPassword;
+    private final Project project;
+
+    private boolean modelRefreshing = false, usePagination = true;
+    private SimpleEntry<String, Integer> uniqueColumnEntry;
+    private Map<String, String> columnHeadersAndTypes;
+    private SQLModelTransformer sqlModelTransformer;
+    private String currentTableName;
+    private Connection connection;
 
     public DatabaseViewModel(@NotNull Project project, List<Object> databaseConnectionSettings, char[] dbPassword) throws SQLException {
         this.project = project;
         this.databaseConnectionSettings = databaseConnectionSettings;
         //TODO - Fix!!
         this.dbPassword = dbPassword;
-        databaseAccessor = new SQLModelTransformer(databaseConnectionSettings);
+        sqlModelTransformer = new SQLModelTransformer(databaseConnectionSettings);
+        ServiceManager.getService(project, DataSourceService.class).buildConnectionPool(databaseConnectionSettings, dbPassword);
         connectionValid();
     }
 
@@ -111,9 +105,11 @@ public final class DatabaseViewModel extends AbstractTableModel {
      *         fieldValues.add(databaseName.getText());
      *         fieldValues.add(resultingUrl.getText());
      *         fieldValues.add(userName.getText());
+     *
+     *         Below should pass a uniqueID only to the Connection Service as the params have already been passed to the cp
      */
     boolean connectionValid() throws SQLException {
-        connection = ServiceManager.getService(project, DataSourceService.class).getConnectionFromPool(databaseConnectionSettings, dbPassword);
+        connection = ServiceManager.getService(project, DataSourceService.class).getConnectionFromPool(databaseConnectionSettings.get(4).toString());
         if(connection != null) {
             try {
                 return connection.isValid(60);
@@ -128,12 +124,12 @@ public final class DatabaseViewModel extends AbstractTableModel {
     }
 
     public Map<String, SimpleEntry<Integer, SimpleEntry<String, String>>> getAllTables() {
-        return databaseAccessor.getAllTableDetails(connection);
+        return sqlModelTransformer.getAllTableDetails(connection);
     }
 
     public int refreshTableModel(String tableName, int totalRowCount) throws SQLException {
         int numberOfPages = 1;
-        modelIsCurrentlyBeingRefreshed = true;
+        modelRefreshing = true;
         if (this.currentTableName != null) {
             flushModel();
         }
@@ -151,7 +147,7 @@ public final class DatabaseViewModel extends AbstractTableModel {
         rowData.clear();
         columnHeadersAndTypes = tableModel.get(tableName).getValue().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getKey()));
         populateTableDataFromResultSet(0);
-        modelIsCurrentlyBeingRefreshed = false;
+        modelRefreshing = false;
 
         return numberOfPages;
     }
@@ -159,13 +155,13 @@ public final class DatabaseViewModel extends AbstractTableModel {
     public void populateTableDataFromResultSet(int pageNumber) {
 
         if (currentTableName != null) {
-            modelIsCurrentlyBeingRefreshed = true;
+            modelRefreshing = true;
 
             try {
                 Statement stmt = connection.createStatement(TYPE_FORWARD_ONLY, CONCUR_READ_ONLY);
                 //TODO - Pagination by max record count.
                 String sql = SELECT_ALL_FROM_TABLE.toString() + currentTableName
-                        +  (!databaseAccessor.getDatabaseType().equals(DERBY) ? ";" : "");
+                        +  (!sqlModelTransformer.getDatabaseType().equals(DERBY) ? ";" : "");
                 try (ResultSet resultSet = stmt.executeQuery(sql)) {
                     rowData.clear();
                     int idx = 1;
@@ -200,7 +196,7 @@ public final class DatabaseViewModel extends AbstractTableModel {
         } else {
             DbViewerPluginUtils.INSTANCE.writeToEventLog(ERROR, "DatabaseViewModel::populateTableDataFromResultSet - TableName was NULL!", null, false, true);
         }
-        modelIsCurrentlyBeingRefreshed = false;
+        modelRefreshing = false;
     }
 
     public String getColumnTypeFromHeaderName(String columnName) {
@@ -222,11 +218,11 @@ public final class DatabaseViewModel extends AbstractTableModel {
     private Map<String, SimpleEntry<Connection, Map<String, SimpleEntry<String, Boolean>>>> getTableColumnsAndConnectionByName(String tableName) throws SQLException {
         Map<String, SimpleEntry<Connection, Map<String, SimpleEntry<String, Boolean>>>> tablesColumnsAndConnection = new LinkedHashMap<>();
         if(Objects.requireNonNull(connection).getMetaData() != null) {
-            try (ResultSet tablesNamesRS = databaseAccessor.databaseTypeResultSet(connection, tableName)) {
+            try (ResultSet tablesNamesRS = sqlModelTransformer.databaseTypeResultSet(connection, tableName)) {
                 if (tablesNamesRS != null && tablesNamesRS.next()) {
                     String tableCatalog = tablesNamesRS.getString(JDBCKeywords.TABLE_CAT.name());
                     String tableSchema = tablesNamesRS.getString(JDBCKeywords.TABLE_SCHEM.name());
-                    Map<String, SimpleEntry<String, Boolean>> columnWithUniqueMap = databaseAccessor.getColumnsWithUniqueMap(connection, tableCatalog, tableSchema, tableName);
+                    Map<String, SimpleEntry<String, Boolean>> columnWithUniqueMap = sqlModelTransformer.getColumnsWithUniqueMap(connection, tableCatalog, tableSchema, tableName);
                     tablesColumnsAndConnection.put(tableName, new SimpleEntry<>(connection, columnWithUniqueMap));
                 }
             } catch (SQLException e) {
@@ -238,14 +234,11 @@ public final class DatabaseViewModel extends AbstractTableModel {
     }
 
     public void cleanUp() {
-        //databaseAccessor.handleClosingDBConnection(connection);
         rowData.clear();
-        databaseAccessor = null;
+        sqlModelTransformer = null;
     }
 
     static class SQLModelTransformer {
-
-        private final Logger logger = LoggerFactory.getLogger(SQLModelTransformer.class);
 
         private final String[] TYPES = {TABLE.name(), VIEW.name()};
         private SqlDatabaseTypes databaseType;
@@ -254,8 +247,8 @@ public final class DatabaseViewModel extends AbstractTableModel {
             databaseType = SqlDatabaseTypes.valueOf(databaseConnectionSettings.get(0).toString());
         }
 
-        public Map<String, AbstractMap.SimpleEntry<Integer, AbstractMap.SimpleEntry<String, String>>> getAllTableDetails(Connection conn) {
-            Map<String, AbstractMap.SimpleEntry<Integer, AbstractMap.SimpleEntry<String, String>>> tableMap = new HashMap<>();
+        public Map<String, SimpleEntry<Integer, SimpleEntry<String, String>>> getAllTableDetails(Connection conn) {
+            Map<String, SimpleEntry<Integer, SimpleEntry<String, String>>> tableMap = new HashMap<>();
             try {
                 if (conn != null) {
                     try (ResultSet tablesNamesRS = databaseTypeResultSet(conn, null)) {
@@ -264,34 +257,33 @@ public final class DatabaseViewModel extends AbstractTableModel {
                                 try {
                                     String tableName = tablesNamesRS.getString(TABLE_NAME.name()),
                                             tableCatalog = tablesNamesRS.getString(TABLE_CAT.name()),
-                                            tableSchema = tablesNamesRS.getString(TABLE_SCHEM.name());
-                                    String sql = ROW_COUNT_QUERY.toString() + tableName + (!databaseType.equals(DERBY) ? ";" : "");
+                                            tableSchema = tablesNamesRS.getString(TABLE_SCHEM.name()),
+                                            sql = ROW_COUNT_QUERY.toString() + tableName + (!databaseType.equals(DERBY) ? ";" : "");
                                     ResultSet rowCountRS = conn.createStatement(TYPE_FORWARD_ONLY, CONCUR_READ_ONLY).executeQuery(sql);
                                     rowCountRS.next();
                                     int rowCount = rowCountRS.getInt(ROW_COUNT.toString());
-                                    tableMap.put(tableName, new AbstractMap.SimpleEntry<>(rowCount, new AbstractMap.SimpleEntry<>(tableCatalog, tableSchema)));
+                                    tableMap.put(tableName, new SimpleEntry<>(rowCount, new SimpleEntry<>(tableCatalog, tableSchema)));
                                     rowCountRS.close();
                                 } catch (SQLException e) {
-                                    logger.error("ERROR; @ getAllTableNamesFromDatabase; failure!", e);
+                                    logger.error("SQLModelTransformer - ERROR; @ getAllTableNamesFromDatabase; failure!", e);
                                 }
                             }
                         }
                     }
                 } else {
-                    logger.error("FATAL; @ getAllTableNamesFromDatabase; got a NULL Connection!");
+                    logger.error("SQLModelTransformer - FATAL; @ getAllTableNamesFromDatabase; got a NULL Connection!");
                 }
             } catch (SQLException e) {
-                logger.error("ERROR; @ getAllTableNamesFromDatabase; failure!", e);
+                logger.error("SQLModelTransformer - ERROR; @ getAllTableNamesFromDatabase; failure!", e);
             }
             return tableMap;
         }
 
-        public Map<String, AbstractMap.SimpleEntry<String, Boolean>> getColumnsWithUniqueMap(Connection conn,
+        public Map<String, SimpleEntry<String, Boolean>> getColumnsWithUniqueMap(Connection conn,
                                                                                              String tableCatalog,
                                                                                              String tableSchema,
                                                                                              String tableName) {
-            //ColumnName, SE<ColumnTypeName, Unique>
-            Map<String, AbstractMap.SimpleEntry<String, Boolean>> columnsWithUniqueMap = new LinkedHashMap<>();
+            Map<String, SimpleEntry<String, Boolean>> columnsWithUniqueMap = new LinkedHashMap<>();
             try {
                 Statement stmt = conn.createStatement(TYPE_FORWARD_ONLY, CONCUR_READ_ONLY);
                 stmt.setFetchSize(1000);
@@ -302,8 +294,8 @@ public final class DatabaseViewModel extends AbstractTableModel {
                 ResultSetMetaData metaData = rowDataResultSet.getMetaData();
                 int columnCount = metaData.getColumnCount();
 
-                for (int i = 1; i <= columnCount; i++) {
-                    columnsWithUniqueMap.put(metaData.getColumnName(i), new AbstractMap.SimpleEntry<>(metaData.getColumnTypeName(i), false));
+                for (int columnIdx = 1; columnIdx <= columnCount; columnIdx++) {
+                    columnsWithUniqueMap.put(metaData.getColumnName(columnIdx), new SimpleEntry<>(metaData.getColumnTypeName(columnIdx), false));
                 }
 
                 List<String> uniqueColumnsList = new ArrayList<>();
@@ -320,9 +312,9 @@ public final class DatabaseViewModel extends AbstractTableModel {
                 columnsWithUniqueMap.entrySet().stream().filter(entry -> uniqueColumnsList.contains(entry.getKey())).forEach(entry -> entry.setValue(new AbstractMap.SimpleEntry<>(entry.getValue().getKey(), true)));
 
             } catch (SQLException e) {
-                logger.error("ERROR! - On Table: " + tableName + " trying to get Unique Columns", e);
+                logger.error("SQLModelTransformer - ERROR! - On Table: " + tableName + " trying to get Unique Columns", e);
             }
-            logger.info("On Table: " + tableName + " Unique Columns; " + StringUtils.join(columnsWithUniqueMap.entrySet().stream().filter(e -> e.getValue().getValue()).collect(Collectors.toList()), ", "));
+            logger.info("SQLModelTransformer - On Table: " + tableName + " Unique Columns; " + StringUtils.join(columnsWithUniqueMap.entrySet().stream().filter(e -> e.getValue().getValue()).collect(Collectors.toList()), ", "));
 
             return columnsWithUniqueMap;
         }

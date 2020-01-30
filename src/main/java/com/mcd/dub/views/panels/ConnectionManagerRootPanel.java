@@ -112,7 +112,7 @@ public class ConnectionManagerRootPanel extends JBPanel<ConnectionManagerRootPan
                 case "Ping":
                     break;
                 case "Connect":
-                    List<Object> dbConnectionSettings = connectionSettingsPanel.getDatabaseSettings();
+                    final List<Object> dbConnectionSettings = connectionSettingsPanel.getDatabaseSettings();
                     createConnection(dbConnectionSettings, connectionSettingsPanel.userPassword.getPassword(), ((StoredConnectionsModel) storedConnectionsTable.getModel()).uniqueRowCheck(dbConnectionSettings));
                     storedConnectionsTable.alignTable();
                     connectionSettingsPanel.createConnectionButton.setEnabled(true);
@@ -132,7 +132,7 @@ public class ConnectionManagerRootPanel extends JBPanel<ConnectionManagerRootPan
         } else if (pce.getPropertyName().equals(StoredConnectionsTable.class.getSimpleName())) {
             switch (pce.getOldValue().toString()) {
                 case "getValueIsAdjusting":
-                    List<Object> rowData = ((StoredConnectionsModel) storedConnectionsTable.getModel()).getDataForRowByTabIndex((Integer) pce.getNewValue());
+                    final List<Object> rowData = ((StoredConnectionsModel) storedConnectionsTable.getModel()).getDataForRowByTabIndex((Integer) pce.getNewValue());
                     connectionSettingsPanel.setDatabaseSettings(rowData);
                     break;
                 case "focusLost":
@@ -173,7 +173,7 @@ public class ConnectionManagerRootPanel extends JBPanel<ConnectionManagerRootPan
 
     private void createConnection(List<Object> databaseConnectionSettings, char[] dbPassword, boolean createNew) {
         if (connectionSettingsPanel.paramsPassValidation(project, databaseConnectionSettings)) {
-            DatabaseViewPanel[] newDbTableTab = new DatabaseViewPanel[1];
+            final DatabaseViewPanel[] newDbTableTab = new DatabaseViewPanel[1];
             try {
                 newDbTableTab[0] = new DatabaseViewPanel(project, databaseConnectionSettings, dbPassword);
             } catch (SQLException ex) {
@@ -186,10 +186,10 @@ public class ConnectionManagerRootPanel extends JBPanel<ConnectionManagerRootPan
                 SqlDatabaseTypes sqlDatabaseTypes = (SqlDatabaseTypes) connectionSettingsPanel.vendor.getSelectedItem();
                 if(databaseViewPanel != null && sqlDatabaseTypes != null) {
                     ApplicationManager.getApplication().invokeLater(() -> {
-                        boolean isSqliteDb = sqlDatabaseTypes.equals(SQLITE);
-                        String tabName;
+                        final boolean isSqliteDb = sqlDatabaseTypes.equals(SQLITE);
+                        final String tabName;
                         if(isSqliteDb) {
-                            String fullDbName = connectionSettingsPanel.databaseName.getText();
+                            final String fullDbName = connectionSettingsPanel.databaseName.getText();
                             tabName = sqlDatabaseTypes.name() + "-" + fullDbName.substring(fullDbName.lastIndexOf('/') +1);
                         } else {
                             tabName = sqlDatabaseTypes.name() + "-" + connectionSettingsPanel.databaseName.getText();
