@@ -51,7 +51,7 @@ public final class DatabaseViewModel extends AbstractTableModel {
     private String currentTableName;
     private Connection connection;
 
-    public DatabaseViewModel(@NotNull Project project, List<Object> databaseConnectionSettings, char[] dbPassword) throws SQLException {
+    public DatabaseViewModel(@NotNull Project project, List<Object> databaseConnectionSettings, char[] dbPassword) throws SQLException, IllegalStateException {
         this.project = project;
         this.databaseConnectionSettings = databaseConnectionSettings;
         //TODO - Fix!!
@@ -108,7 +108,7 @@ public final class DatabaseViewModel extends AbstractTableModel {
      *
      *         Below should pass a uniqueID only to the Connection Service as the params have already been passed to the cp
      */
-    boolean connectionValid() throws SQLException {
+    boolean connectionValid() throws SQLException, IllegalStateException {
         connection = ServiceManager.getService(project, DataSourceService.class).getConnectionFromPool(databaseConnectionSettings.get(4).toString());
         if(connection != null) {
             try {

@@ -62,7 +62,7 @@ final class DatabaseViewPanel extends JBPanel<DatabaseViewPanel> {
     private final JTree tableList;
     private DefaultMutableTreeNode selectedTreeElement;
 
-    DatabaseViewPanel(@NotNull Project project, List<Object> databaseConnectionSettings, char[] dbPassword) throws SQLException {
+    DatabaseViewPanel(@NotNull Project project, List<Object> databaseConnectionSettings, char[] dbPassword) throws SQLException, IllegalStateException {
         try {
             maxRowCount = Integer.parseInt(System.getProperty("plugin.dbTableViewTab.jTable.pageSize"));
         } catch (NumberFormatException numEx) {

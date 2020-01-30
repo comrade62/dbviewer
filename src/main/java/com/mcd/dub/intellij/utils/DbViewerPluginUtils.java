@@ -26,9 +26,9 @@ public enum DbViewerPluginUtils {
     private final String pluginName = plugin == null ? "NULL!" : plugin.getName();
     private final Map<NotificationType, String> notificationTypeToLoggerCategory = new HashMap<>(3);
     {
-        notificationTypeToLoggerCategory.put(ERROR, "error");
-        notificationTypeToLoggerCategory.put(WARNING, "warn");
-        notificationTypeToLoggerCategory.put(INFORMATION, "info");
+        notificationTypeToLoggerCategory.put(ERROR, ERROR.name().toLowerCase());
+        notificationTypeToLoggerCategory.put(WARNING, WARNING.name().toLowerCase().substring(0, 4));
+        notificationTypeToLoggerCategory.put(INFORMATION, INFORMATION.name().toLowerCase().substring(0, 4));
     }
 
     public void writeToEventLog(@NotNull NotificationType notificationType, @NotNull String msg, @Nullable Exception exception, boolean hideBalloon, boolean writeToLogFile) {

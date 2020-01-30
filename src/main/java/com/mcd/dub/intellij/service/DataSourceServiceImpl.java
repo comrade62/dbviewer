@@ -33,15 +33,18 @@ class DataSourceServiceImpl extends DataSource implements DataSourceService {
     @Override
     public String buildConnectionPool(@NotNull List<Object> connectionSettings, char[] dbPassword) {
         String poolUrl = super.buildConnectionPool(connectionSettings, dbPassword);
-        listeners.forEach(connectionPools.get(poolUrl)::registerListenerWithPool);
+        listeners.forEach(getConnectionPools().get(poolUrl)::registerListenerWithPool);
         updateListeners(null);
         return poolUrl;
     }
 
     @Override
-    public Connection getConnectionFromPool(@NotNull String poolUrl) throws SQLException {
-        Connection connection = connectionPools.get(poolUrl).getConnectionFromPool();
-        //updateListeners(poolUrl);
+    public Connection getConnectionFromPool(@NotNull String poolUrl) throws SQLException, IllegalStateException {
+        if(getConnectionPools().get(poolUrl) == null) {
+            throw new IllegalStateException("Pool has not been created for Db@ " + poolUrl);
+        }
+        Connection connection = getConnectionPools().get(poolUrl).getConnectionFromPool();
+        updateListeners(poolUrl);
         return connection;
     }
 
@@ -64,9 +67,9 @@ class DataSourceServiceImpl extends DataSource implements DataSourceService {
 
     private void updateListeners(@Nullable String poolUrl) {
         if(poolUrl == null) {
-            connectionPools.forEach((dbUrl, connectionPool) -> connectionPool.updateListeners());
+            getConnectionPools().forEach((dbUrl, connectionPool) -> connectionPool.updateListeners());
         } else {
-            connectionPools.get(poolUrl).updateListeners();
+            getConnectionPools().get(poolUrl).updateListeners();
         }
     }
 

@@ -18,7 +18,6 @@ public class ExecuteRunnableInBackGroundWithProgress extends Backgroundable {
     private static final Logger logger = LoggerFactory.getLogger(ExecuteRunnableInBackGroundWithProgress.class);
 
     private final boolean canBeCancelled, showSuccessMsg;
-    private final Runnable task;
     private final Thread thread;
     private Exception exception;
 
@@ -29,7 +28,6 @@ public class ExecuteRunnableInBackGroundWithProgress extends Backgroundable {
                                                    @Nullable PerformInBackgroundOption backgroundOption,
                                                    @NotNull Runnable task) {
         super(project, title, canBeCancelled, backgroundOption);
-        this.task = task;
         this.canBeCancelled = canBeCancelled;
         this.showSuccessMsg = showSuccessMsg;
         thread = new Thread(task);

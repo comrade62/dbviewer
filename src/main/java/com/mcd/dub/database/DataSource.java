@@ -5,11 +5,13 @@ import org.apache.commons.dbcp.ConnectionFactory;
 import org.apache.commons.dbcp.DriverManagerConnectionFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteOpenMode;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,11 +24,11 @@ import static org.apache.commons.pool2.impl.GenericObjectPoolConfig.DEFAULT_MAX_
 public abstract class DataSource {
 
     protected static final Logger logger = LoggerFactory.getLogger(DataSource.class);
-    protected static Map<String, ConnectionPool> connectionPools = new HashMap<>(SqlDatabaseTypes.values().length);
+    private static final Map<String, ConnectionPool> connectionPools = new HashMap<>(SqlDatabaseTypes.values().length);
 
-    protected String buildConnectionPool(@NotNull List<Object> connectionSettings, char[] dbPassword) {
+    protected String buildConnectionPool(@NotNull List<Object> connectionSettings, @Nullable char[] dbPassword) {
         if(!connectionPools.containsKey(connectionSettings.get(4).toString())) {
-            ConnectionFactory cf = new DriverManagerConnectionFactory(connectionSettings.get(4).toString(), connectionSettings.get(5).toString(), String.valueOf(dbPassword));
+            ConnectionFactory cf = new DriverManagerConnectionFactory(connectionSettings.get(4).toString(), connectionSettings.get(5).toString(), String.valueOf(dbPassword == null ? new char[0] : dbPassword));
             boolean readOnly = true;
             if(connectionSettings.get(0).equals(SQLITE)) {
                 SQLiteConfig config = new SQLiteConfig();
@@ -52,4 +54,7 @@ public abstract class DataSource {
         });
     }
 
+    public static Map<String, ConnectionPool> getConnectionPools() {
+        return Collections.unmodifiableMap(connectionPools);
+    }
 }
