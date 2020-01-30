@@ -73,7 +73,7 @@ public final class ConnectionSettingsPanel extends JBPanel<ConnectionSettingsPan
             validationMap.remove("Username");
         }
         for (Map.Entry<String, List<Object>> fieldParameterEntry : validationMap.entrySet()) {
-            if(fieldParameterEntry.getValue() == null || fieldParameterEntry.getValue().get(0).toString().isBlank()) {
+            if(fieldParameterEntry.getValue() == null || fieldParameterEntry.getValue().get(0).toString().isEmpty()) {
                 errorMsg.append(" - ").append(fieldParameterEntry.getKey());
                 errorMsg.append(lineSeparator());
             }
