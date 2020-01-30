@@ -10,7 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.table.AbstractTableModel;
-import java.io.*;
+import java.io.ObjectStreamException;
+import java.io.Serializable;
 import java.util.*;
 
 import static com.mcd.dub.intellij.utils.Constants.TableHeaderColumnDisplayNames.VENDOR;
