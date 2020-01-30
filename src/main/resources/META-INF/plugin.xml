@@ -24,6 +24,8 @@
         <toolWindow id="Database Viewer" anchor="bottom"  icon="/icons/DatabaseViewer.png" factoryClass="com.mcd.dub.ToolWindowViewManager"/>
         <projectService id="db_pool_service" serviceInterface="com.mcd.dub.intellij.service.DataSourceService"
                         serviceImplementation="com.mcd.dub.intellij.service.DataSourceServiceImpl"/>
+
+        <applicationService id="con_storage_service" serviceImplementation="com.mcd.dub.intellij.persistence.StoredConnections"/>
         />
     </extensions>
 
