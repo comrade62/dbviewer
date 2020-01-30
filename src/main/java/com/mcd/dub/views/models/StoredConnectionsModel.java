@@ -2,6 +2,8 @@ package com.mcd.dub.views.models;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.components.ServiceManager;
+import com.mcd.dub.intellij.persistence.StoredConnections;
 import com.mcd.dub.intellij.utils.DbViewerPluginUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -17,10 +19,7 @@ public class StoredConnectionsModel extends AbstractTableModel implements Serial
 
     private static final Logger logger = LoggerFactory.getLogger(StoredConnectionsModel.class);
 
-    private final Map<String, List<Object>> dataMap = DbViewerPluginUtils.INSTANCE.getDataMap(true);
-
-    //TODO - Convert to intellij persistence component.
-    private final String filePath = System.getProperty("idea.pluginAccelerator.dbTableViewTab.existingConnections.listLocation");
+    private final Map<String, List<Object>> dataMap = DbViewerPluginUtils.INSTANCE.getDataMap(false);
 
     public StoredConnectionsModel() {
         readObject();
@@ -92,45 +91,18 @@ public class StoredConnectionsModel extends AbstractTableModel implements Serial
 
     private void writeObject() {
         ApplicationManager.getApplication().invokeAndWait(() -> {
-            try(ObjectOutputStream objOut = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(filePath, false)))) {
-                objOut.writeObject(dataMap);
-            } catch (IOException e) {
-                logger.error("ERROR " + e.getClass().getSimpleName(), e);
+            StoredConnections storedConnections = ServiceManager.getService(StoredConnections.class).getState();
+            if(storedConnections != null) {
+                storedConnections.setDataMap(new LinkedHashMap<>(dataMap));
             }
         });
     }
 
-    @SuppressWarnings({"unchecked", "unused", "ResultOfMethodCallIgnored"})
     private void readObject() {
         ApplicationManager.getApplication().invokeAndWait(() -> {
-            //TODO - Use Path.
-            File inputFile = new File(filePath);
-            if(!inputFile.exists()) {
-                try {
-                    inputFile.toPath().getParent().toFile().mkdirs();
-                    inputFile.createNewFile();
-                } catch (IOException e) {
-                    logger.error("ERROR " + e.getClass().getSimpleName(), e);
-                }
-            }
-
-            if(inputFile.exists() && inputFile.isFile()) {
-                if(inputFile.length() > 0L) {
-                    try(ObjectInputStream objIn = new ObjectInputStream(new BufferedInputStream(new FileInputStream(filePath)))) {
-                        Object existingData = objIn.readObject();
-                        if(Map.class.isAssignableFrom(existingData.getClass())) {
-                            ((Map<String, List<Object>>)existingData).forEach((s, objects) -> dataMap.get(s).addAll(objects));
-                        } else {
-                            logger.error("Error De-Serializing Row Data!");
-                        }
-                    } catch (StreamCorruptedException e) {
-                        logger.error("::readObject -> Persisted data is corrupted, file will be deleted!" + e.getClass().getSimpleName(), e);
-                    } catch (ClassNotFoundException | IOException e) {
-                        logger.error("::readObject -> " + e.getClass().getSimpleName(), e);
-                    }
-                }
-            } else {
-                logger.error("Location: " + filePath + " is not a file!");
+            StoredConnections storedConnections = ServiceManager.getService(StoredConnections.class).getState();
+            if(storedConnections != null) {
+                dataMap.putAll(storedConnections.getDataMap());
             }
         }, ModalityState.current());
     }
