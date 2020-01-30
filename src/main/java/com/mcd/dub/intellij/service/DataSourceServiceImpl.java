@@ -1,9 +1,7 @@
 package com.mcd.dub.intellij.service;
 
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.mcd.dub.database.DataSource;
-import com.mcd.dub.intellij.persistence.StoredConnections;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
