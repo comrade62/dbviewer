@@ -5,6 +5,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBTextField;
 import com.mcd.dub.intellij.utils.Constants.SqlDatabaseTypes;
@@ -30,11 +31,8 @@ public final class ConnectionSettingsPanel extends JBPanel<ConnectionSettingsPan
     JComboBox<SqlDatabaseTypes> vendor;
     JComboBox<String> connectionType;
     JButton createConnectionButton, clearConnectionDetailsButton, statusButton;
+    private JLabel hostLabel;
 
-    ConnectionSettingsPanel() {
-        ApplicationManager.getApplication().invokeLater(new Listeners());
-    }
-    
     List<Object> getDatabaseSettings() {
         List<Object> fieldValues = new ArrayList<>(6);
         SqlDatabaseTypes dataBaseType = (SqlDatabaseTypes) Objects.requireNonNull(vendor.getSelectedItem());
@@ -94,6 +92,7 @@ public final class ConnectionSettingsPanel extends JBPanel<ConnectionSettingsPan
         userName = new JBTextField();
         databaseName = new JBTextField();
         userPassword = new JPasswordField();
+        hostLabel = new JBLabel(System.getProperty("panel.connectionsettings.host"));
 
         vendor = new ComboBox<>(new DefaultComboBoxModel<>());
         for (SqlDatabaseTypes dbType : SqlDatabaseTypes.values()) {
@@ -115,6 +114,7 @@ public final class ConnectionSettingsPanel extends JBPanel<ConnectionSettingsPan
         statusButton = new JButton("Ping");
         createConnectionButton = new JButton("Connect");
         clearConnectionDetailsButton = new JButton("Clear");
+        ApplicationManager.getApplication().invokeLater(new Listeners());
     }
 
     private void setResultingUrl() {
@@ -172,6 +172,7 @@ public final class ConnectionSettingsPanel extends JBPanel<ConnectionSettingsPan
                     userName.setEnabled(false);
                     userPassword.setEnabled(false);
                     connectionType.setEnabled(false);
+                    hostLabel.setText(System.getProperty("panel.connectionsettings.path"));
                 } else if(itemEvent.getStateChange() == ItemEvent.SELECTED) {
                     hostPort.setEnabled(true);
                     connectionType.setEnabled(true);
@@ -179,6 +180,7 @@ public final class ConnectionSettingsPanel extends JBPanel<ConnectionSettingsPan
                     userPassword.setEnabled(true);
                     connectionType.setEnabled(true);
                     userPassword.setText("");
+                    hostLabel.setText(System.getProperty("panel.connectionsettings.host"));
                 }
                 setResultingUrl();
             });
