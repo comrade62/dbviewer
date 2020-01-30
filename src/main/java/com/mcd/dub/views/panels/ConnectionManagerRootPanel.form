@@ -102,7 +102,7 @@
                                   <maximumSize width="78" height="28"/>
                                   <minimumSize width="78" height="28"/>
                                   <preferredSize width="78" height="28"/>
-                                  <text value="Back"/>
+                                  <text resource-bundle="properties/ui-strings" key="panel.connectionmanagerroot.back"/>
                                   <verifyInputWhenFocusTarget value="false"/>
                                   <verticalAlignment value="0"/>
                                 </properties>
