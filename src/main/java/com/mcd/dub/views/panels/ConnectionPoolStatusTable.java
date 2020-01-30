@@ -35,17 +35,18 @@ public class ConnectionPoolStatusTable extends JBTable implements PropertyChange
         this.getComponentPopupMenu().add(shutdownPoolMenuItem);
     }
 
+    //This object should listen to the 'DatabaseViewModel'
     void addListeners(Project project) {
-        ServiceManager.getService(project, DataSourceService.class).registerServiceListener(this);
+        ServiceManager.getService(project, DataSourceService.class).addPoolsListener(this);
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         if(!evt.getPropertyName().isEmpty() && evt.getPropertyName().contains("-")) {
-            String[] split = evt.getPropertyName().split("-");
+            final String[] split = evt.getPropertyName().split("-");
             if(split.length == 2) {
                 SqlDatabaseTypes databaseType = SqlDatabaseTypes.valueOf(split[1]);
-                int idx = ((ConnectionPoolStatusModel)getModel()).getDataMap().get("Pool Type").indexOf(databaseType);
+                final int idx = ((ConnectionPoolStatusModel)getModel()).getDataMap().get("Pool Type").indexOf(databaseType);
                 ApplicationManager.getApplication().invokeLater(() -> {
                     switch(split[0]) {
                         case "PoolLifeCycleEvent":

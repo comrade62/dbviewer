@@ -21,18 +21,12 @@
     <version>1.0</version>
     <idea-version since-build="163" until-build="201.*"/>
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow id="Database Viewer" anchor="bottom"  factoryClass="com.mcd.dub.ToolWindowViewManager"/>
-
+        <toolWindow id="Database Viewer" anchor="bottom"  icon="/icons/DatabaseViewer.png" factoryClass="com.mcd.dub.ToolWindowViewManager"/>
         <projectService id="db_pool_service" serviceInterface="com.mcd.dub.intellij.service.DataSourceService"
-                        serviceImplementation="com.mcd.dub.intellij.service.DataSourceServiceImpl"/>/>
+                        serviceImplementation="com.mcd.dub.intellij.service.DataSourceServiceImpl"/>
+        />
     </extensions>
 
     <actions> </actions>
-
-    <project-components>
-        <component>
-            <implementation-class>com.mcd.dub.intellij.components.DbViewerProjectComponent</implementation-class>
-        </component>
-    </project-components>
 
 </idea-plugin>

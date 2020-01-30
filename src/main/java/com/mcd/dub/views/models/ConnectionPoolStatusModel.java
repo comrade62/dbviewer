@@ -7,7 +7,7 @@ import java.util.*;
 
 public class ConnectionPoolStatusModel extends AbstractTableModel {
 
-    private final Map<String, List<Object>> dataMap = new LinkedHashMap<>();
+    private static final Map<String, List<Object>> dataMap = new LinkedHashMap<>();
     {
         dataMap.put("Pool Type", new ArrayList<>());
         dataMap.put("Status", new ArrayList<>());

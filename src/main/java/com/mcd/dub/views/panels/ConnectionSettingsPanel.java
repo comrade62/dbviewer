@@ -108,8 +108,8 @@ public final class ConnectionSettingsPanel extends JBPanel<ConnectionSettingsPan
         setResultingUrl();
 
         connectionType = new ComboBox<>(new DefaultComboBoxModel<>());
-        ((DefaultComboBoxModel<String>)connectionType.getModel()).addElement("DBCP");
-        ((DefaultComboBoxModel<String>)connectionType.getModel()).addElement("JNDI");
+        ((DefaultComboBoxModel<String>)connectionType.getModel()).addElement(System.getProperty("connection.type.dbcp"));
+        ((DefaultComboBoxModel<String>)connectionType.getModel()).addElement(System.getProperty("connection.type.jndi"));
 
         statusButton = new JButton("Ping");
         createConnectionButton = new JButton("Connect");
