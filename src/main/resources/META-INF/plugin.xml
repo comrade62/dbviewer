@@ -14,22 +14,17 @@
             - H2<br>
             - SQLite<br><br>
 
-            Code Repository: ...@github.com<br><br>
-
-        <!--Validated Platforms;<br>
-            - Fedora 30.<br>
-            - Windows 10 (TODO).-->
+            Code Repository: https://github.com/oneperfectsunrise/dbviewer<br><br>
         ]]>
     </description>
 
     <version>1.0</version>
-    <idea-version since-build="192" />
-    <depends>com.intellij.modules.lang</depends>
-
+    <idea-version since-build="163" until-build="201.*"/>
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow id="Database Viewer" anchor="bottom"  icon="/icons/DatabaseViewer.png" factoryClass="com.mcd.dub.ToolWindowViewManager"/>
+        <toolWindow id="Database Viewer" anchor="bottom"  factoryClass="com.mcd.dub.ToolWindowViewManager"/>
+
         <projectService id="db_pool_service" serviceInterface="com.mcd.dub.intellij.service.DataSourceService"
-                        serviceImplementation="com.mcd.dub.intellij.service.DataSourceServiceImpl"/>
+                        serviceImplementation="com.mcd.dub.intellij.service.DataSourceServiceImpl"/>/>
     </extensions>
 
     <actions> </actions>

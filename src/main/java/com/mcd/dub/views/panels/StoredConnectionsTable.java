@@ -38,7 +38,6 @@ public class StoredConnectionsTable extends JBTable {
         setComponentPopupMenu(new JBPopupMenu());
         this.getComponentPopupMenu().add(removeConnection);
         addListeners();
-        System.out.println(ApplicationManager.getApplication().isDispatchThread());
     }
 
     private void addListeners() {
