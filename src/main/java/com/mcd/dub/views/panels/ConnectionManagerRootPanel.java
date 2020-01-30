@@ -12,6 +12,8 @@ import com.mcd.dub.intellij.task.ExecuteRunnableInBackGroundWithProgress;
 import com.mcd.dub.intellij.utils.Constants.SqlDatabaseTypes;
 import com.mcd.dub.intellij.utils.DbViewerPluginUtils;
 import com.mcd.dub.views.models.StoredConnectionsModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
@@ -27,18 +29,18 @@ import static com.intellij.openapi.progress.PerformInBackgroundOption.ALWAYS_BAC
 import static com.mcd.dub.intellij.utils.Constants.SqlDatabaseTypes.SQLITE;
 
 public class ConnectionManagerRootPanel extends JBPanel<ConnectionManagerRootPanel> implements PropertyChangeListener {
+
+    private static final Logger logger = LoggerFactory.getLogger(ConnectionManagerRootPanel.class);
     
     private final Project project;
     private final JBPopupMenu tabMenu = new JBPopupMenu();
     private final JBMenuItem closeConnectionPopupMenuItem = new JBMenuItem("Close Connection"),
                                 buildDbViewPopupMenuItem = new JBMenuItem("Build View");
     
-    private JPanel rootPanel;
-    private JBTabbedPane tabbedPane;
+    private JPanel rootPanel, cardPanel;
+    private JBTabbedPane outerTabbedPane, innerTabbedPane;
     private ConnectionSettingsPanel connectionSettingsPanel;
     private JSplitPane jsplitPane;
-    private JPanel cardPanel;
-    private JBTabbedPane JBTabbedPane;
     private OpenConnectionsTable openConnectionsTable;
     private StoredConnectionsTable storedConnectionsTable;
     private ConnectionPoolStatusTable connectionPoolStatusTable;
@@ -49,7 +51,7 @@ public class ConnectionManagerRootPanel extends JBPanel<ConnectionManagerRootPan
         addListenersForThisPanel();
         tabMenu.add(closeConnectionPopupMenuItem);
         tabMenu.add(buildDbViewPopupMenuItem);
-        tabbedPane.setComponentPopupMenu(tabMenu);
+        outerTabbedPane.setComponentPopupMenu(tabMenu);
         jsplitPane.setDividerLocation(510);
         jsplitPane.setEnabled(false);
         connectionSettingsPanel.addPropertyChangeListener(this);
@@ -58,11 +60,11 @@ public class ConnectionManagerRootPanel extends JBPanel<ConnectionManagerRootPan
 
     private void addListenersForThisPanel() {
         closeConnectionPopupMenuItem.addActionListener(actionEvent -> {
-            if (tabbedPane.getSelectedIndex() > 0) {
+            if (outerTabbedPane.getSelectedIndex() > 0) {
                 ApplicationManager.getApplication().invokeLater(() -> {
-                    ((DatabaseViewPanel)tabbedPane.getSelectedComponent()).destroyModel();
-                    openConnectionsTable.removeFromDataMap(tabbedPane.getSelectedIndex() -1);
-                    tabbedPane.removeTabAt(tabbedPane.getSelectedIndex());
+                    ((DatabaseViewPanel) outerTabbedPane.getSelectedComponent()).destroyModel();
+                    openConnectionsTable.removeFromDataMap(outerTabbedPane.getSelectedIndex() -1);
+                    outerTabbedPane.removeTabAt(outerTabbedPane.getSelectedIndex());
                 });
             }
             if(storedConnectionsTable.getAvailableConnections().isEmpty()) {
@@ -74,7 +76,7 @@ public class ConnectionManagerRootPanel extends JBPanel<ConnectionManagerRootPan
             @Override
             public void popupMenuWillBecomeVisible(PopupMenuEvent popupMenuEvent) {
                 ApplicationManager.getApplication().invokeLater(() -> {
-                    if (tabbedPane.getSelectedIndex() != 0 && tabbedPane.getTabComponentAt(tabbedPane.getSelectedIndex()) != null) {
+                    if (outerTabbedPane.getSelectedIndex() != 0 && outerTabbedPane.getTabComponentAt(outerTabbedPane.getSelectedIndex()) != null) {
                         ApplicationManager.getApplication().invokeLater(() -> closeConnectionPopupMenuItem.setVisible(true));
                     } else {
                         ApplicationManager.getApplication().invokeLater(() -> {
@@ -153,8 +155,8 @@ public class ConnectionManagerRootPanel extends JBPanel<ConnectionManagerRootPan
         } else if (pce.getPropertyName().equals(OpenConnectionsTable.class.getSimpleName())) {
             switch (pce.getOldValue().toString()) {
                 case "closeConnectionFromTable":
-                    ((DatabaseViewPanel)tabbedPane.getComponentAt((Integer) pce.getNewValue())).destroyModel();
-                    ApplicationManager.getApplication().invokeLater(() -> tabbedPane.removeTabAt((Integer) pce.getNewValue()));
+                    ((DatabaseViewPanel) outerTabbedPane.getComponentAt((Integer) pce.getNewValue())).destroyModel();
+                    ApplicationManager.getApplication().invokeLater(() -> outerTabbedPane.removeTabAt((Integer) pce.getNewValue()));
                     break;
                 default:
                     //TODO - Log Unhandled Event
@@ -176,7 +178,8 @@ public class ConnectionManagerRootPanel extends JBPanel<ConnectionManagerRootPan
             final DatabaseViewPanel[] newDbTableTab = new DatabaseViewPanel[1];
             try {
                 newDbTableTab[0] = new DatabaseViewPanel(project, databaseConnectionSettings, dbPassword);
-            } catch (SQLException ex) {
+            } catch (SQLException | IllegalStateException ex) {
+                logger.error("::createConnection -> ", ex);
                 return;
             }
 
@@ -194,7 +197,7 @@ public class ConnectionManagerRootPanel extends JBPanel<ConnectionManagerRootPan
                         } else {
                             tabName = sqlDatabaseTypes.name() + "-" + connectionSettingsPanel.databaseName.getText();
                         }
-                        databaseConnectionSettings.add(tabbedPane.getTabCount());
+                        databaseConnectionSettings.add(outerTabbedPane.getTabCount());
                         if(createNew) {
                             storedConnectionsTable.addToDataMap(databaseConnectionSettings);
                             if(!openConnectionsTable.addToDataMap(databaseConnectionSettings)) {
@@ -206,8 +209,8 @@ public class ConnectionManagerRootPanel extends JBPanel<ConnectionManagerRootPan
                             }
                             //TODO - If a connection to the same table exists append count.
                         }
-                        tabbedPane.addTab(tabName, IconLoader.getIcon("/icons/Database.png"), databaseViewPanel , "");
-                        tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
+                        outerTabbedPane.addTab(tabName, IconLoader.getIcon("/icons/Database.png"), databaseViewPanel , "");
+                        outerTabbedPane.setSelectedIndex(outerTabbedPane.getTabCount() - 1);
                         connectionSettingsPanel.createConnectionButton.setEnabled(true);
                     });
                     DbViewerPluginUtils.INSTANCE.writeToEventLog(INFORMATION, "-> createConnection -> Successfully Created Tab for Database: " + connectionSettingsPanel.resultingUrl.getText(), null, false, true);

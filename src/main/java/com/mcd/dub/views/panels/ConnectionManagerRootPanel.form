@@ -8,7 +8,7 @@
     <properties/>
     <border type="none"/>
     <children>
-      <tabbedpane id="7f770" class="com.intellij.ui.components.JBTabbedPane" binding="tabbedPane">
+      <tabbedpane id="7f770" class="com.intellij.ui.components.JBTabbedPane" binding="outerTabbedPane">
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
@@ -120,7 +120,7 @@
                   </scrollpane>
                 </children>
               </grid>
-              <tabbedpane id="f6e91" class="com.intellij.ui.components.JBTabbedPane" binding="JBTabbedPane">
+              <tabbedpane id="f6e91" class="com.intellij.ui.components.JBTabbedPane" binding="innerTabbedPane">
                 <constraints>
                   <splitpane position="right"/>
                 </constraints>

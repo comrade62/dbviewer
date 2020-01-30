@@ -44,7 +44,7 @@ public class ConnectionPoolStatusModel extends AbstractTableModel {
     }
 
     private void bulkAddRow(List<List<Object>> newRows) {
-        List<String> dataMapKeySet = new ArrayList<>(dataMap.keySet());
+        final List<String> dataMapKeySet = new ArrayList<>(dataMap.keySet());
         newRows.forEach(newRow -> {
             for (int idx = 0; idx < dataMap.keySet().size(); idx++) {
                 dataMap.get(dataMapKeySet.get(idx)).add(newRow.get(idx));
@@ -55,7 +55,7 @@ public class ConnectionPoolStatusModel extends AbstractTableModel {
 
     public final boolean addRow(List<Object> newRow) {
         boolean success = false;
-        List<String> dataMapKeySet = new ArrayList<>(dataMap.keySet());
+        final List<String> dataMapKeySet = new ArrayList<>(dataMap.keySet());
         for (int idx = 0; idx < dataMap.keySet().size(); idx++) {
             success = dataMap.get(dataMapKeySet.get(idx)).add(newRow.get(idx));
         }
