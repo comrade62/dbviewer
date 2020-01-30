@@ -41,7 +41,7 @@ public class ConnectionPoolStatusTable extends JBTable implements PropertyChange
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        if(!evt.getPropertyName().isBlank() && evt.getPropertyName().contains("-")) {
+        if(!evt.getPropertyName().isEmpty() && evt.getPropertyName().contains("-")) {
             String[] split = evt.getPropertyName().split("-");
             if(split.length == 2) {
                 SqlDatabaseTypes databaseType = SqlDatabaseTypes.valueOf(split[1]);
