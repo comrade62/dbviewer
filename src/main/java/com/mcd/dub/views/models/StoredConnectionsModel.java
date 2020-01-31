@@ -94,9 +94,9 @@ public class StoredConnectionsModel extends AbstractTableModel implements Serial
         ApplicationManager.getApplication().invokeAndWait(() -> {
             StoredConnections storedConnections = ServiceManager.getService(StoredConnections.class).getState();
             if(storedConnections != null) {
-                storedConnections.setDataMap(new LinkedHashMap<>(dataMap));
+                storedConnections.bulkAddData(new LinkedHashMap<>(dataMap));
             }
-        });
+        }, ModalityState.NON_MODAL);
     }
 
     private void readObject() {
@@ -105,7 +105,7 @@ public class StoredConnectionsModel extends AbstractTableModel implements Serial
             if(storedConnections != null) {
                 dataMap.putAll(storedConnections.getDataMap());
             }
-        }, ModalityState.current());
+        }, ModalityState.NON_MODAL);
     }
 
     private void readObjectNoData() throws ObjectStreamException { }

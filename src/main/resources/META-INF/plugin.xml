@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>mcd.dbviewer</id>
     <name>Database Viewer</name>
-    <vendor email="openapullrequest@belowrepo.com" url="http://www.m&amp;m_enterprises.com">M&amp;M Enterprises</vendor>
+    <vendor email="markymcd13@gmail.com" url="">M&amp;M Enterprises</vendor>
 
     <description>
         <![CDATA[ Lightweight plugin for viewing database tables over JDBC<!-- or JNDI (TODO)-->.<br><br>
@@ -18,13 +18,14 @@
         ]]>
     </description>
 
+    <depends>com.intellij.modules.java</depends>
+
     <version>1.0</version>
     <idea-version since-build="163" until-build="201.*"/>
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow id="Database Viewer" anchor="bottom"  icon="/icons/DatabaseViewer.png" factoryClass="com.mcd.dub.ToolWindowViewManager"/>
         <projectService id="db_pool_service" serviceInterface="com.mcd.dub.intellij.service.DataSourceService"
                         serviceImplementation="com.mcd.dub.intellij.service.DataSourceServiceImpl"/>
-
         <applicationService id="con_storage_service" serviceImplementation="com.mcd.dub.intellij.persistence.StoredConnections"/>
         />
     </extensions>

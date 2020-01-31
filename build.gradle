@@ -3,6 +3,10 @@ plugins {
     id 'org.jetbrains.intellij' version '0.4.16'
 }
 
+intellij {
+    plugins 'java'
+}
+
 group 'intellij_dev_tools'
 version '1.0-SNAPSHOT'
 
@@ -16,12 +20,12 @@ repositories {
 dependencies {
    // ecj 'org.eclipse.jdt.core.compiler:ecj:4.+'
     testCompile 'junit:junit:4.+'
-    implementation('commons-dbcp:commons-dbcp:1+')
+    implementation('org.apache.commons:commons-dbcp2:2+')
     implementation('org.apache.commons:commons-pool2:2+')
     implementation('org.apache.logging.log4j:log4j-slf4j-impl:2+')
 
-    implementation('mysql:mysql-connector-java:5+')
-    implementation('postgresql:postgresql:9+')
+    implementation('mysql:mysql-connector-java:8+')
+    implementation('org.postgresql:postgresql:42+')
     implementation('com.h2database:h2:1+')
     implementation('org.apache.derby:derbyclient:10.14+')
     implementation('org.apache.derby:derbyshared:10+')
